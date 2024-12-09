@@ -270,8 +270,6 @@ class Arbre:
         return self.racine.__repr__()
 
 
-import matplotlib.pyplot as plt
-
 class GradientBoosting:
     def __init__(self, n_estimators=10, learning_rate=0.1, profondeur_max=3, seuil_variance=1.5, verbose=False):
         self.n_estimators = n_estimators
@@ -395,6 +393,7 @@ if __name__ == '__main__':
     # Instancier et entraîner l'arbre
     arbre = Arbre(X_train, y_train, profondeur_max=profondeur_max)
     # Visualisation de l'arbre
+    arbre.visualiser_arbre()
     """ 
     # Validation croisée
     n_splits = 5  # Par exemple, 5 plis
@@ -413,6 +412,7 @@ if __name__ == '__main__':
     X = np.arange(len(predictions))
     plt.scatter(X,y_test, label='Valeurs réelles')
     plt.scatter(X,predictions,label='Prédictions')
+    plt.legend()
     plt.show()
 
     # valeur de l'erreur
@@ -420,7 +420,7 @@ if __name__ == '__main__':
 
     # Entraîner le modèle de Gradient Boosting
     data_train, data_val, cible_train, cible_val = train_test_split(data, cible, test_size=0.2, random_state=42)
-    gb = GradientBoosting(n_estimators=100, learning_rate=0.1, profondeur_max=5, verbose=False)
+    gb = GradientBoosting(n_estimators=50, learning_rate=0.1, profondeur_max=5, verbose=False)
     gb.fit(data_train, cible_train, data_val=data_val, cible_val=cible_val)
 
     # Tracer l'évolution des erreurs
