@@ -1,0 +1,159 @@
+# Rapport Data challenge
+
+## Introduction
+Ce rapport présente les différentes approches testées pour résoudre le challenge de prédiction d'interactions molécule-protéine. L'objectif était de prédire l'inhibition d'une protéine par différentes molécules, représentant un cas typique de régression en chémoinformatique.
+
+## Description des Méthodes Utilisées
+
+### K-Nearest Neighbors (KNN)
+Les k plus proches voisins est une méthode non paramétrique qui :
+- Prédit la valeur d'une nouvelle molécule en fonction des k molécules les plus similaires dans le jeu d'entraînement
+- Utilise la distance euclidienne dans l'espace des fingerprints
+- Pondère les contributions des voisins selon leur distance
+
+### Neural Networks (NN)
+Les réseaux de neurones sont des modèles d'apprentissage profond qui :
+- Consistent en des couches successives de neurones interconnectés
+- Apprennent automatiquement des représentations hiérarchiques des données
+- Peuvent capturer des relations non linéaires complexes
+
+### Graph Neural Networks (GNN)
+Les GNN sont des réseaux de neurones spécialisés qui :
+- Opèrent directement sur la structure graphique des molécules
+- Utilisent des convolutions sur les graphes pour apprendre des représentations
+- Permettent de prendre en compte la topologie moléculaire explicitement
+
+### Gradient Boosting Machines
+#### XGBoost (eXtreme Gradient Boosting)
+- Construit séquentiellement des arbres de décision
+- Optimise une fonction de perte différentiable
+- Utilise des techniques avancées de régularisation
+
+#### LightGBM
+- Version optimisée du gradient boosting
+- Utilise une stratégie de croissance des arbres en profondeur
+- Particulièrement efficace sur les grands jeux de données
+
+## Prétraitement des Données
+Pour toutes nos expériences, nous avons utilisé les mêmes données prétraitées :
+
+Conversion des structures SMILES en fingerprints moléculaires
+Normalisation des données avec StandardScaler et PCA à 95% de variance
+Validation croisée 5-fold pour une évaluation robuste
+
+## Démarche Expérimentale et Résultats
+
+### 1. K Plus Proches Voisins (KNN)
+#### Démarche
+1. Test de différentes valeurs de k (3, 5, 7, 10, 15)
+2. Implémentation de la pondération par distance
+3. Validation croisée 5-fold
+
+#### Performance
+- Résultats moyens mais rapides à obtenir
+- Utilisé comme référence de base
+- Score public autour de 0.60
+
+### 2. Réseau de Neurones avec Optuna
+#### Démarche
+1. Définition d'une architecture flexible
+2. Optimisation automatique avec Optuna :
+   - Nombre de couches
+   - Tailles des couches
+   - Taux de dropout
+   - Learning rate
+3. Validation croisée pour évaluer la robustesse
+
+#### Performance
+- Score public autour de 0.55-0.60
+- Temps d'entraînement modéré
+- Meilleur que KNN mais pas optimal
+
+### 3. Graph Neural Network (GNN)
+#### Démarche
+1. Implémentation d'une architecture à 3 couches GCN
+2. Utilisation de features atomiques enrichies :
+   - Type d'atome
+   - Degré
+   - Aromaticité
+   - etc.
+
+#### Performance
+- Score public de 1.10
+- Résultats décevants malgré la sophistication
+- Probablement limité par la taille du dataset
+
+### 4. XGBoost Seul
+#### Démarche Initiale
+1. Optimisation basique des hyperparamètres
+2. Validation croisée 5-fold
+
+#### Améliorations Successives
+1. Optimisation plus poussée avec Optuna
+2. Ajout de features supplémentaires
+3. Early stopping pour éviter le surapprentissage
+
+#### Performance
+- Score MSE autour de 0.52-0.55
+- Bon compromis performance/temps
+
+### 5. Ensemble XGBoost + LightGBM
+#### Démarche Itérative
+1. **Première version** :
+   - Simple moyenne des prédictions
+   - Paramètres basiques
+   - Score ~0.52
+
+2. **Améliorations progressives** :
+   - Optimisation individuelle des modèles
+   - Stacking avec méta-modèle ElasticNet
+   - Augmentation du nombre d'essais Optuna
+
+3. **Version finale optimisée** :
+   - Parallélisation optimale (8 cœurs)
+   - 50 essais d'optimisation par fold
+   - Pondération optimisée des modèles
+   - Features enrichies
+   - Score public final de 0.51
+
+#### Détails techniques importants
+- **Optimisation des hyperparamètres** :
+  ```python
+  xgb_params = {
+      'max_depth': [3-15],
+      'learning_rate': [0.0001-0.3],
+      'n_estimators': [100-2000],
+      ...
+  }
+  ```
+- **Validation croisée** : 5-fold avec stratification
+- **Stacking** : ElasticNet comme méta-modèle
+- **Pondération** : Optimisée par validation croisée
+
+## Comparaison des Performances
+| Modèle | Score public | Temps d'entraînement | Complexité |
+|--------|-----------|---------------------|------------|
+| KNN | 0.60 | Rapide | Faible |
+| Neural Network | 0.56-0.70 | Moyen | Moyenne |
+| GNN | 1.10 | Long | Élevée |
+| XGBoost | 0.52-0.55 | Moyen | Moyenne |
+| XGB+LGB | 0.51 | Long | Élevée |
+
+## Conclusion
+L'approche progressive, partant de méthodes simples vers des ensembles plus sophistiqués, a permis d'améliorer significativement les performances. L'ensemble final combinant XGBoost, LightGBM avec une optimisation poussée a donné les meilleurs résultats, démontrant l'intérêt de combiner plusieurs modèles complémentaires et d'optimiser finement leurs hyperparamètres.
+
+## Recommandations pour Améliorations Futures
+1. **Features Engineering** :
+   - Tester d'autres types de fingerprints
+   - Ajouter des descripteurs physico-chimiques
+   - Explorer la sélection de features
+
+2. **Optimisation** :
+   - Augmenter encore le nombre d'essais Optuna
+   - Tester d'autres méta-modèles pour le stacking
+   - Optimiser la pondération des modèles
+
+3. **Architecture** :
+   - Explorer des architectures d'ensemble plus complexes
+   - Tester des variantes de GNN avec plus de données
+   - Implémenter des techniques d'augmentation de données

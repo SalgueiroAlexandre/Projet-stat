@@ -25,6 +25,14 @@ def variance_pond(x):
 
 # Validation croisée
 def validation_croisee(data, cible, profondeur_max, n_splits=5):
+    """
+    Validation croisée pour l'arbre de régression
+    :param data: données d'entrée
+    :param cible: valeurs cibles
+    :param profondeur_max: profondeur maximale de l'arbre
+    :param n_splits: nombre de plis
+    :return: erreur quadratique moyenne
+    """
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
     erreurs_moyennes = []
 
@@ -117,8 +125,8 @@ class Arbre:
         self.verbose = verbose
         self.seuil_variance = seuil_variance
         self.racine = self.fit(data, cible, profondeur=0)  # Premier appel de fit avec profondeur=0
-        predictions_test = self.simulation(self.data)
-        self.score_test(predictions_test)
+        self.predictions_test = self.simulation(self.data)
+        self.score_test(self.predictions_test)
 
 
     def score_test(self,predictions_test):
@@ -394,7 +402,7 @@ if __name__ == '__main__':
     arbre = Arbre(X_train, y_train, profondeur_max=profondeur_max)
     # Visualisation de l'arbre
     arbre.visualiser_arbre()
-    """ 
+    
     # Validation croisée
     n_splits = 5  # Par exemple, 5 plis
     # Dans la validation croisée, essaie différentes profondeurs et seuils
@@ -405,7 +413,7 @@ if __name__ == '__main__':
         validation_croisee(data, cible, profondeur_max=profondeur, n_splits=5)
     tps_fin = time()
     print("duree programme : " + str(tps_fin - tps_depart))
-    """
+    
     # Prédiction sur la nouvelle donnée
     predictions = arbre.simulation(X_test)
     # graphique des prédictions et des valeurs réelles
